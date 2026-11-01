@@ -1,0 +1,24 @@
+/* Toy-brick visual layer. Financial calculations and storage are unchanged. */
+:root{--brick-paper:#fffbee;--brick-rim:#20201c;--brick-yellow:#ffd02f;--brick-blue:#2454bc;--brick-red:#d83c30}
+body{background-color:var(--brick-paper);background-image:radial-gradient(circle at 7px 7px,#b9ac7d20 2px,transparent 3px);background-size:24px 24px}
+header{background:#fffdf5;border-bottom-color:var(--brick-rim)}
+aside{background:#f7f1d9;border-right-color:var(--brick-rim)}
+main{background:#fffdf5e8}
+.brandmark{border-radius:5px;box-shadow:0 3px 0 #bcae80}
+.brandmark i{border-radius:50%;box-shadow:inset 0 2px 1px #ffffff60,inset 0 -2px 1px #00000035}
+nav button{border-radius:6px}nav button.active{box-shadow:0 3px 0 #a99d74}nav button b{border:1px solid currentColor;border-radius:3px;min-width:20px;text-align:center}
+.btn{border-radius:6px;box-shadow:0 3px 0 #10101220;transition:transform .15s,box-shadow .15s}.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(2px);box-shadow:none}
+.bento{background:transparent;border:0;gap:13px;padding-bottom:6px}
+.tile{border:3px solid var(--brick-rim);border-radius:11px;box-shadow:0 5px 0 var(--brick-rim);overflow:hidden;padding-top:43px}
+.tile:before{content:'';position:absolute;pointer-events:none;top:11px;left:18px;right:18px;height:17px;background:radial-gradient(ellipse at 10px 7px,#ffffff55 0 5px,#00000016 6px 8px,transparent 9px) 0 0/30px 17px repeat-x;opacity:.65}
+.yellow{background:var(--brick-yellow)}.blue{background:var(--brick-blue)}.red{background:var(--brick-red)}
+.panel,.tablewrap,.news-card{border-radius:9px;background:#fffdf5;box-shadow:0 4px 0 #20201c}
+.progress{border-radius:6px;overflow:hidden}.badge{border-radius:4px}.strip .tag{border:1px solid #20201c;border-radius:4px;background:#ffda54}
+.note{background:#f4eed8;border-radius:0 6px 6px 0}.topline h1{font-weight:800;letter-spacing:-1px}
+.brick-welcome{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.92fr);align-items:center;gap:20px;background:#f6f0db;border:3px solid #20201c;border-radius:13px;box-shadow:0 5px 0 #20201c;margin:22px 0 27px;padding:22px 26px;position:relative;overflow:hidden}
+.brick-welcome:before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 7px 7px,#a6935220 3px,transparent 4px) 0 0/25px 25px}
+.brick-welcome-copy,.brick-welcome-figure{position:relative}.brick-welcome-copy .eyebrow{color:#615944;font-size:10px}.brick-welcome-copy h2{font-size:26px;font-weight:800;line-height:1.45;letter-spacing:-.7px;margin:10px 0}.brick-welcome-copy p{font-size:12px;line-height:1.85;color:#625b48;max-width:330px}.brick-welcome-figure{margin:0;min-width:0;display:flex;flex-direction:column;align-items:center}.brick-welcome-figure img{width:100%;height:195px;object-fit:contain;filter:drop-shadow(0 9px 4px #7d6b3120);transition:transform .2s}.brick-welcome-figure:hover img{transform:translateY(-4px)}.brick-welcome-figure figcaption{font-size:10px;color:#5a513e;text-align:center;letter-spacing:.4px}.brick-role-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.brick-role-tags span{border:1px solid #20201c;border-radius:5px;padding:5px 9px;font-size:10px;background:#fff9e9}
+body.dark .brick-welcome{background:#2d2b23;color:#f8f1d8}body.dark .brick-welcome-copy p,body.dark .brick-welcome-copy .eyebrow,body.dark .brick-welcome-figure figcaption{color:#ded3b3}body.dark .brick-role-tags span{background:#414033}body.dark main{background:#19191bf2}body.dark aside{background:#24231e}body.dark .panel,body.dark .tablewrap,body.dark .news-card{background:#20201c}body.dark header{background:#20201c}body.dark .tile{border-color:#d8cfb3;box-shadow:0 5px 0 #8c856e}body.dark .yellow{color:#101012}body.dark .note{background:#353225}
+@media(max-width:700px){.brick-welcome{padding:20px;grid-template-columns:1fr 1fr;gap:8px}.brick-welcome-copy h2{font-size:22px}.brick-welcome-figure img{height:155px}.brick-welcome-copy p{font-size:11px}.bento{gap:10px}}
+@media(max-width:480px){.brick-welcome{grid-template-columns:1fr}.brick-welcome-copy h2{font-size:25px}.brick-welcome-figure img{height:190px}.brick-welcome-figure{max-width:320px;justify-self:center}.brick-role-tags{margin-top:10px}.tile{padding-top:41px}}
+@media(prefers-reduced-motion:reduce){.btn,.brick-welcome-figure img{transition:none}.btn:hover,.brick-welcome-figure:hover img{transform:none}}
