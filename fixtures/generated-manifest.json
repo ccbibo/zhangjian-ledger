@@ -1,0 +1,22 @@
+{
+  "bank-statement.pdf": {
+    "sha256": "53a22c3a4c336b329d6beae0bf3fe452f2abc4c4890f8acf939dd3f0ae89b2c5",
+    "bytes": 4011
+  },
+  "blank-financial-content.pdf": {
+    "sha256": "4f341e6bf6af68d2028e08d33a44b22ba3181b17875f0ca0cce70914df5ab2bc",
+    "bytes": 1398
+  },
+  "credit-card-statement.pdf": {
+    "sha256": "3c7111626f992794ba47811adaab53e6423debe3f175667c549de6aefd9bf028",
+    "bytes": 2552
+  },
+  "payslip.pdf": {
+    "sha256": "d2bd9faf21dda34e91b678507945e50a3751d809e02203d701c0d6c2877e5eb5",
+    "bytes": 2482
+  },
+  "unknown-document.pdf": {
+    "sha256": "33a00de6798f6d88cb9088e3e7fcc96cdf67a8b9f09005c78f94e89564d69ac0",
+    "bytes": 1854
+  }
+}

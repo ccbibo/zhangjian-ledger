@@ -1,0 +1,77 @@
+{
+  "fixture_version": 1,
+  "synthetic_only": true,
+  "notice": "Handwritten independent oracle, not computed from application parser output. All persons and accounts are TEST.",
+  "currency": "TWD",
+  "month": "2026-10",
+  "documents": {
+    "bank-statement.pdf": {
+      "kind": "bank_statement",
+      "pages": 2,
+      "account": "TEST Bank 001",
+      "opening_balance": 100000,
+      "closing_balance": 134400,
+      "movement": 34400,
+      "transaction_count": 5,
+      "transactions": [
+        {"date": "2026-10-28", "name": "Salary", "amount": 65000, "amount_cents": 6500000, "category": "薪資", "page": 1},
+        {"date": "2026-10-20", "name": "Rent", "amount": -18000, "amount_cents": -1800000, "category": "生活", "page": 1},
+        {"date": "2026-10-10", "name": "Card repayment", "amount": -3800, "amount_cents": -380000, "category": "信用卡繳款", "page": 1},
+        {"date": "2026-10-08", "name": "Internal transfer", "amount": -10000, "amount_cents": -1000000, "category": "轉帳", "page": 2},
+        {"date": "2026-10-22", "name": "Dividend", "amount": 1200, "amount_cents": 120000, "category": "股息", "page": 2}
+      ]
+    },
+    "credit-card-statement.pdf": {
+      "kind": "credit_card_statement",
+      "pages": 1,
+      "account": "TEST Credit Card 4242",
+      "total_due": 3800,
+      "minimum_payment": 380,
+      "due_date": "2026-11-10",
+      "transaction_count": 3,
+      "transactions": [
+        {"date": "2026-10-05", "name": "Meals", "amount": -1200, "amount_cents": -120000, "category": "餐飲", "page": 1},
+        {"date": "2026-10-06", "name": "Transport", "amount": -600, "amount_cents": -60000, "category": "交通", "page": 1},
+        {"date": "2026-10-07", "name": "Insurance", "amount": -2000, "amount_cents": -200000, "category": "保險", "page": 1}
+      ]
+    },
+    "payslip.pdf": {
+      "kind": "payslip",
+      "pages": 1,
+      "pay_date": "2026-10-28",
+      "gross_pay": 72000,
+      "tax": 5000,
+      "insurance": 2000,
+      "net_pay": 65000,
+      "transaction_count": 1,
+      "transactions": [{"date": "2026-10-28", "name": "Salary", "amount": 65000, "amount_cents": 6500000, "category": "薪資", "page": 1}],
+      "reconciliation": "72000 - 5000 - 2000 = 65000; one net deposit only; withholding metadata is not extra spending"
+    },
+    "unknown-document.pdf": {"kind": "unsupported", "expected_rejected": true, "transaction_count": 0},
+    "blank-financial-content.pdf": {"kind": "unsupported", "expected_rejected": true, "transaction_count": 0}
+  },
+  "combined_after_review_and_confirm": {
+    "supported_documents": 3,
+    "rejected_documents": 2,
+    "raw_transaction_rows": 9,
+    "unique_transactions": 8,
+    "duplicate_salary_rows_excluded": 1,
+    "income": 66200,
+    "income_cents": 6620000,
+    "expense": 21800,
+    "expense_cents": 2180000,
+    "cashflow_surplus": 44400,
+    "cashflow_surplus_cents": 4440000,
+    "excluded_card_repayment": 3800,
+    "excluded_internal_transfer": 10000,
+    "account_assets": 134400,
+    "credit_card_liabilities": 3800,
+    "net_worth": 130600,
+    "category_expenses": {"生活": 18000, "餐飲": 1200, "交通": 600, "保險": 2000},
+    "credit_card_due_date": "2026-11-10",
+    "saved_salary_metadata": {"gross_pay": 72000, "tax": 5000, "insurance": 2000, "net_pay": 65000}
+  },
+  "reimport_all_supported_pdfs": {"new_transactions": 0, "unchanged_unique_transactions": 8},
+  "csv_after_supported_pdfs": {"file": "transactions.csv", "duplicate_rows": 8, "new_transactions": 0},
+  "test_limitations": ["These are digitally generated text PDFs, not scanned-image OCR.", "The templates are a finite synthetic contract; results do not establish support for every real bank layout.", "The empty fixture contains the SYNTHETIC watermark but intentionally no financial fields."]
+}
