@@ -1,0 +1,20 @@
+const {boot}=require('../harness.cjs');
+const fs=require('node:fs'),crypto=require('node:crypto'),path=require('node:path');
+const file=process.argv[2]||path.join(__dirname,'../baseline/index.html');
+const output=process.argv[3]||path.join(__dirname,'../reports/P02-r1.json');
+const results=[];
+function test(id,name,expr,expected){const b=boot(file);let actual;try{actual=b.run(expr)}catch(e){actual={error:e.message}};const pass=JSON.stringify(actual)===JSON.stringify(expected);results.push({id,name,pass,expected,actual,evidence:'Node VM synthetic fixture; not browser UI'});}
+test('M01','baseline balances', '[totalAssets(),totalDebts(),totalAssets()-totalDebts(),income(),expense()]',[1800000,198640,1601360,72200,25700]);
+test('M02','negative outflow and excluded transfer classes',`(()=>{state.transactions=[{date:'2026-10-01',amount:100,category:'薪資'},{date:'2026-10-02',amount:-20,category:'餐飲'},{date:'2026-10-03',amount:-10000,category:'轉帳'},{date:'2026-10-04',amount:-20000,category:'信用卡繳款'},{date:'2026-10-05',amount:-5000,category:'投資'}];return [income(),expense()]})()`,[100,20]);
+test('M03','month and year boundary isolation',`(()=>{state.month='2027-01';state.transactions=[{date:'2026-12-31',amount:1000,category:'薪資'},{date:'2027-01-01',amount:100,category:'薪資'},{date:'2027-02-01',amount:-10,category:'餐飲'}];return [income(),expense(),period().length]})()`,[100,0,1]);
+test('M04','rebalance target sum preserves total',`(()=>{let total=totalAssets();return Math.round(state.assets.reduce((sum,a)=>sum+total*a.target/100-a.value,0))})()`,0);
+test('M05','zero-income savings has no NaN or infinity',`(()=>{state.transactions=[];return !/NaN|Infinity/.test(dashboard())})()`,true);
+test('M06','decimal amounts remain visible',`(()=>{state.transactions=[];parseCSV('date,description,amount,category\\n2026-10-01,cents,-0.49,餐飲','cents.csv');commit();return table(state.transactions).includes('0.49')})()`,true);
+test('M07','unsafe integer cannot be silently imported',`(()=>{state.transactions=[];parseCSV('date,description,amount\\n2026-10-01,unsafe,9007199254740993','unsafe.csv');return review.length===0})()`,true);
+test('M08','finite entries must not allow aggregate infinity',`(()=>{let x={format:'ledger-v1',data:structuredClone(initial)};x.data.assets.forEach(a=>a.value=1e308);return validateBackup(x)===false})()`,true);
+test('M09','invalid backup month rejected',`(()=>{let x={format:'ledger-v1',data:structuredClone(initial)};x.data.month='2026-99';return validateBackup(x)===false})()`,true);
+test('M10','positive large rebalance delta has explicit plus',`(()=>{state.assets[0].target=40;state.assets[1].target=30;return portfolio().includes('+240,000')})()`,true);
+test('M11','next payment uses earliest due not array order',`(()=>{state.debts=[{name:'Late debt',balance:100,rate:0,due:'2026-12-01',payment:100},{name:'Early debt',balance:200,rate:0,due:'2026-11-02',payment:200}];let html=dashboard();return html.indexOf('下一筆應繳')>=0&&html.slice(html.indexOf('下一筆應繳'),html.indexOf('下一筆應繳')+500).includes('Early debt')})()`,true);
+const failures=results.filter(r=>!r.pass);
+const report={reviewer:'P02',role:'Financial numerical correctness',file,sha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),evidenceType:'Node VM synthetic data and generated markup; browser/UI untested',results,passed:results.length-failures.length,total:results.length,criticalFindings:['M07 unsafe integers silently mutate amount','M08 aggregate infinity accepted in backup'].filter(x=>failures.some(f=>x.startsWith(f.id))),scores:{task:18.75,data:10,persistence:15,ui:null,scope:7.5,error:2.5},functionalScore:53.75,maxFunctional:80,verdict:'FAIL; UI untested, critical financial data issues present'};
+fs.writeFileSync(output,JSON.stringify(report,null,2));console.log(JSON.stringify({output,...report},null,2));

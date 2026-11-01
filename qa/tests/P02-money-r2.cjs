@@ -1,0 +1,15 @@
+const {boot}=require('../harness.cjs');
+const fs=require('node:fs'),crypto=require('node:crypto'),path=require('node:path');
+const file=process.argv[2]||'finance-ledger/dist/index.html',out=process.argv[3]||'finance-ledger/qa/reports/P02-r2.json';
+const original=JSON.parse(fs.readFileSync(process.argv[4]||'finance-ledger/qa/reports/P02-r2-original.json'));
+let results=original.results.slice();
+function test(id,name,expr,expected,opts){const b=boot(file,opts);let actual;try{actual=b.run(expr)}catch(e){actual={error:e.message}}results.push({id,name,pass:JSON.stringify(actual)===JSON.stringify(expected),expected,actual,evidence:'Node VM synthetic fixture; not browser UI'})}
+test('M12','cent arithmetic is exact for 0.1 + 0.2',`(()=>{state.transactions=[{id:'a',date:'2026-10-01',name:'a',amount:0.1,category:'薪資',source:'manual'},{id:'b',date:'2026-10-02',name:'b',amount:0.2,category:'薪資',source:'manual'}];return income()===0.3})()`,true);
+test('M13','third decimal refused before review',`(()=>{review=[];parseCSV('date,description,amount\\n2026-10-01,test,0.001','three-decimals.csv');return review.length===0})()`,true);
+test('M14','aggregate upper bound validates before storage',`(()=>{let x={format:'ledger-v1',data:structuredClone(initial)};x.data.assets[0].value=1e12;return !validateBackup(x)})()`,true);
+test('M15','already-paid debt excluded from next payment',`(()=>{state.debts=[{name:'Paid',payment:0,due:'2026-01-01'},{name:'Unpaid',payment:100,due:'2026-12-01'}];return nextDebt().name==='Unpaid'})()`,true);
+test('M16','failed persistence keeps ledger and review intact',`(()=>{let before=JSON.stringify(state);parseCSV('date,description,amount\\n2026-10-01,new,-0.25','new.csv');commit();return JSON.stringify(state)===before&&review.length===1&&messages.some(m=>m.includes('未儲存'))&&!messages.some(m=>m.includes('已確認'))})()`,true,{failSave:true});
+test('M17','tiny non-cent numeric backup is rejected',`(()=>{let x={format:'ledger-v1',data:structuredClone(initial)};x.data.transactions[0].amount=0.100001;return !validateBackup(x)})()`,true);
+const failures=results.filter(r=>!r.pass);const scores={task:25,data:failures.length?15:20,persistence:20,ui:null,scope:10,error:5};
+const report={reviewer:'P02',round:'R2',role:'Financial numerical correctness',file,sha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),evidenceType:'Node VM synthetic fixture and generated markup; no browser or UI validation',results,passed:results.length-failures.length,total:results.length,scores,functionalScore:Object.values(scores).reduce((a,b)=>a+(b||0),0),maxFunctional:80,criticalFindings:[],remainingFindings:failures.map(r=>({id:r.id,severity:'medium',description:'Backup accepts a non-cent value 0.100001 under tolerance; raw export retains it while cent sums normalize to 0.10'})),verdict:failures.length?'Financial data fidelity defect remains; UI untested; overall NOT PASSED':'Financial role checks pass; UI untested; overall acceptance not established'};
+fs.writeFileSync(out,JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));

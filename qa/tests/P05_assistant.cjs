@@ -1,0 +1,24 @@
+const fs=require('node:fs'),path=require('node:path');
+const {boot}=require('../harness.cjs');
+const root=path.resolve(__dirname,'../..');
+const file=process.argv[2]||path.join(root,'qa/baseline/index.html');
+const reportPath=process.argv[3]||path.join(root,'qa/reports/P05_round1.json');
+const results=[];
+function run(id,title,setup,q,expectation,check){const b=boot(file);if(setup)b.run(setup);b.ctx.question=q;b.run('ask(question)');const answer=b.run('chats.at(-1)?.text||""');const pass=check(answer,b);results.push({id,title,question:q,expectation,pass,answer,evidence:'Node VM with DOM stub; not browser/UI'});}
+const correctFood=a=>a.includes('1,180')&&a.includes('2026-10')&&a.includes('來源');
+const refuses=a=>/無法|不支援|目前僅|目前只|請.*選|不確定|不能|需要|單一|分開/.test(a);
+run('P05-01','Supported food query',null,'這個月餐飲花多少？','October food 1180 with sources',correctFood);
+run('P05-02','Explicit month differs from selector',null,'2026年9月餐飲花多少？','September 0 or explicit request to change selector; must not answer October total',a=>refuses(a)||(/2026-09/.test(a)&&!a.includes('1,180')));
+run('P05-03','Unsupported category must not silently become all expenses',null,'這個月交通支出多少？','Transportation 1490 or explicit unsupported category response',a=>refuses(a)||(a.includes('交通')&&a.includes('1,490')&&!a.includes('25,700')));
+run('P05-04','Negation of food and actual intent',null,'我不是問餐飲，我想問交通支出','Do not answer food as actual request',a=>refuses(a)||(a.includes('交通')&&a.includes('1,490')));
+run('P05-05','Multiple categories',null,'餐飲和交通各多少？','Answer both or request separate supported question',a=>refuses(a)||(a.includes('交通')&&a.includes('1,490')&&a.includes('1,180')));
+run('P05-06','Multiple months',null,'比較九月和十月的餐飲支出','Provide both periods or explicitly unsupported comparison',a=>refuses(a)||(/2026-09/.test(a)&&/2026-10/.test(a)));
+run('P05-07','Empty data', 'state.transactions=[];', '這個月餐飲花多少？','Zero recorded items and explicit period',a=>a.includes('0')&&a.includes('0 筆')&&a.includes('2026-10'));
+run('P05-08','Unsupported investment recommendation',null,'幫我推薦明天一定會漲的股票','No invented AI/prediction',a=>refuses(a)&&a.includes('尚未串接'));
+run('P05-09','Followup retains scope honestly',null,'那上個月呢？','Ask to specify / unsupported, not fabricated figure',a=>refuses(a)&&!a.includes('NT$'));
+run('P05-10','Timestamp selector respected','state.month="2026-09";','本月收支與結餘？','September income68000 expense18000 balance50000',a=>a.includes('2026-09')&&a.includes('68,000')&&a.includes('18,000')&&a.includes('50,000'));
+run('P05-11','Source record output','state.transactions=[{id:"x",date:"2026-10-01",name:"午餐",amount:-123,category:"餐飲",source:"statement.csv",line:7}];','餐飲支出多少？','Traceable source filename and row',a=>a.includes('statement.csv 第 7 列')&&a.includes('123'));
+run('P05-12','Negative all-expense intent',null,'不要算餐飲，幫我算其他支出','Do not return only food',a=>refuses(a)||(!a.includes('餐飲支出為')&&a.includes('24,520')));
+const failures=results.filter(r=>!r.pass);
+const out={reviewer:'P05',role:'財務問答忠實性',round:file.includes('baseline')?1:2,file,evidence:'Node VM functional tests and source inspection; UI not tested',cases:results,passed:results.length-failures.length,total:results.length,findings:failures.map(r=>({case:r.id,severity:['P05-02','P05-03','P05-04','P05-12'].includes(r.id)?'critical':'major',issue:r.title,reproduction:r.question,actual:r.answer,expected:r.expectation})),scores:{task:12.5,fidelity:10,state:15,ui:null,scope:7.5,status:3.75},score_total_measured:48.75,maximum_measured:80,full_verdict:'not passed; UI untested; incorrect scoped answers',notes:['Rule-based assistant is clearly disclosed; no external LLM claimed.','Weights are 25/20/20/20/10/5, in 0/25/50/75/100% bands.','Output totals explicitly show current month, but ignore contradictory requested month without warning.','All test inputs are synthetic.']};
+fs.writeFileSync(reportPath,JSON.stringify(out,null,2));console.log(JSON.stringify({file,passed:out.passed,total:out.total,failures:failures.map(r=>r.id),reportPath},null,2));

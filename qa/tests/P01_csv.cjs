@@ -1,0 +1,20 @@
+const {boot}=require('../harness.cjs');
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const file=process.argv[2]||path.join(__dirname,'../baseline/index.html');
+const round=process.argv[3]||'r1';
+const checks=[];
+function run(id,name,code,expected,options={}){const h=boot(file,options);let actual,error;try{actual=JSON.parse(JSON.stringify(h.run(code)))}catch(e){error=e.message}const pass=JSON.stringify(actual)===JSON.stringify(expected)&&!error;checks.push({id,name,expected,actual,error,pass,evidence:'Node VM with stub DOM; not browser interaction'});}
+run('P01-C01','valid decimal and quoted comma imports to review only',`parseCSV('date,description,amount,category\\n2026-10-01,"coffee, lunch",-80.25,餐飲','normal.csv');({count:review.length,amount:review[0].amount,name:review[0].name,ledger:state.transactions.length})`,{count:1,amount:-80.25,name:'coffee, lunch',ledger:11});
+run('P01-C02','hexadecimal financial amount must be rejected',`parseCSV('date,description,amount\\n2026-10-01,coffee,0x10','hex.csv');review.length`,0);
+run('P01-C03','exponent financial amount must be rejected',`parseCSV('date,description,amount\\n2026-10-01,coffee,1e3','exp.csv');review.length`,0);
+run('P01-C04','same-file duplicate is excluded by default',`parseCSV('date,description,amount\\n2026-10-01,coffee,-80\\n2026-10-01,coffee,-80','duplicate.csv');review.map(r=>({duplicate:r.duplicate,keep:r.keep}))`,[{duplicate:false,keep:true},{duplicate:true,keep:false}]);
+run('P01-C05','revised review must flag newly created duplicate before commit',`parseCSV('date,description,amount\\n2026-10-01,coffee,-80\\n2026-10-02,coffee,-80','edited.csv');review[1].date='2026-10-01';commit();state.transactions.filter(t=>t.source==='edited.csv').length`,1);
+run('P01-C06','negative fractional cents must not silently import',`parseCSV('date,description,amount\\n2026-10-01,coffee,-0.001','tiny.csv');review.length`,0);
+run('P01-C07','duplicate committed file reimport is not selected',`parseCSV(sample(),'sample.csv');commit();parseCSV(sample(),'sample.csv');review.every(r=>r.duplicate&&!r.keep)`,true);
+run('P01-C08','invalid calendar dates fail atomically',`parseCSV('date,description,amount\\n2026-10-01,coffee,-80\\n2026-02-30,test,-2','invalid.csv');({review:review.length,ledger:state.transactions.length})`,{review:0,ledger:11});
+run('P01-C09','storage failure must not claim successful import',`parseCSV(sample(),'sample.csv');commit();messages.some(t=>t.includes('已確認')||t.includes('已儲存'))`,false,{failSave:true});
+run('P01-C10','embedded newline source points to physical CSV row',`parseCSV('date,description,amount\\n2026-10-01,"multi\\nline",-80\\n2026-10-02,next,-90','multiline.csv');review.map(t=>t.line)`,[2,4]);
+run('P01-C11','prototype-like filenames retain import history',`parseCSV(sample(),'__proto__');commit();state.imports.some(t=>t.name==='__proto__')`,true);
+run('P01-C12','multiline source escaped quotes remain exact',`csvRows('a,b,c\\n1,"he said ""yes""",3')[1][1]`,'he said "yes"');
+const report={reviewer:'P01',role:'CSV import and duplicate review',round,file,sha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),checks,passed:checks.filter(c=>c.pass).length,total:checks.length};
+fs.writeFileSync(path.join(__dirname,`../reports/P01_${round}_raw.json`),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
