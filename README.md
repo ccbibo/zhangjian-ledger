@@ -6,9 +6,11 @@
 
 ## 實際介面
 
-![帳見財務總覽：淨值、收入、支出、預算與儲蓄目標](screenshots/dashboard.png)
+![帳見財務總覽：積木人物與合成財務摘要](screenshots/dashboard.png)
 
-![帳見財務圖表：資產配置、分類支出與月份現金流](screenshots/charts.png)
+![帳見每日新聞：更新狀態與來源說明](screenshots/news.png)
+
+![帳見股市資訊：合成行情卡與趨勢圖](screenshots/markets.png)
 
 ## 作品怎麼用
 
